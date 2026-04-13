@@ -60,20 +60,29 @@ func main() {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.RequestID)
 
-	r.Get("/user/{id}", handler)
+	r.Get("/user", handler)
+	r.Post("/user/create", create)
 	r.Get("/bd/{id}", history)
 
 	//http.HandleFunc("/user/{id}", handler)
 	//http.HandleFunc("/bd/{id}", history)
-	tmpl, err := template.New("test").Parse("App is running...\n")
+	templateText := "App is running...\nAction: {{.}}\n"
+	tmpl, err := template.New("test").Parse(templateText)
 	check(err)
-	err = tmpl.Execute(os.Stdout, nil)
+	err = tmpl.Execute(os.Stdout, "Postgress too...")
 	check(err)
 	appPort := getEnv("APP_PORT", "8086")
 	err = http.ListenAndServe(":"+appPort, r)
 	if err != nil {
 		panic(err)
 	}
+}
+
+func executeTemplate(text string, data interface{}) {
+	tmpl, err := template.New("test").Parse(text)
+	check(err)
+	err = tmpl.Execute(os.Stdout, data)
+	check(err)
 }
 
 func getEnv(key, defaultValue string) string {
@@ -87,6 +96,32 @@ func check(error error) {
 	if error != nil {
 		log.Fatal(error)
 	}
+}
+
+func create(res http.ResponseWriter, req *http.Request) {
+	id := req.FormValue("signature")
+	_, err := res.Write([]byte(id))
+	check(err)
+	fmt.Fprintf(res, "\nOk!")
+
+	if id == "favicon.ico" {
+		res.WriteHeader(http.StatusNoContent)
+		return
+	}
+	_, err = db.Exec(`
+			INSERT INTO user_ids (user_id)
+			VALUES ($1)
+			ON CONFLICT (user_id) DO NOTHING
+`, id)
+	if err != nil {
+		fmt.Fprintf(res, "Error saving: %v", err)
+		return
+	}
+
+	fmt.Fprintf(res, "Hello Sairan! Сохранил данные в таблицу: %s", id)
+
+	http.Redirect(res, req, "/user", http.StatusCreated)
+
 }
 
 func history(res http.ResponseWriter, req *http.Request) {
@@ -106,26 +141,11 @@ func history(res http.ResponseWriter, req *http.Request) {
 
 func handler(res http.ResponseWriter, req *http.Request) {
 	//id := req.PathValue("id")
-	id := chi.URLParam(req, "id")
+	//id := chi.URLParam(req, "id")
 
 	html, err := template.ParseFiles("view.html")
 	check(err)
 	err = html.Execute(res, nil)
 	check(err)
-	if id == "favicon.ico" {
-		res.WriteHeader(http.StatusNoContent)
-		return
-	}
 
-	_, err = db.Exec(`
-			INSERT INTO user_ids (user_id)
-			VALUES ($1)
-			ON CONFLICT (user_id) DO NOTHING
-`, id)
-	if err != nil {
-		fmt.Fprintf(res, "Error saving: %v", err)
-		return
-	}
-
-	fmt.Fprintf(res, "Hello Sairan! Сохранил данные в таблицу: %s", id)
 }
