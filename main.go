@@ -3,6 +3,8 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"html/template"
+	"log"
 	"net/http"
 	"os"
 
@@ -22,6 +24,7 @@ func main() {
 	dbSSLMode := getEnv("DB_SSLMODE", "disable")
 
 	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s", dbUser, dbPassword, dbHost, dbPort, dbName, dbSSLMode)
+
 	var err error
 	db, err = sql.Open("postgres", connStr)
 	if err != nil {
@@ -62,8 +65,11 @@ func main() {
 
 	//http.HandleFunc("/user/{id}", handler)
 	//http.HandleFunc("/bd/{id}", history)
-
-	appPort := getEnv("APP_PORT", "8085")
+	tmpl, err := template.New("test").Parse("App is running...\n")
+	check(err)
+	err = tmpl.Execute(os.Stdout, nil)
+	check(err)
+	appPort := getEnv("APP_PORT", "8086")
 	err = http.ListenAndServe(":"+appPort, r)
 	if err != nil {
 		panic(err)
@@ -75,6 +81,12 @@ func getEnv(key, defaultValue string) string {
 		return value
 	}
 	return defaultValue
+}
+
+func check(error error) {
+	if error != nil {
+		log.Fatal(error)
+	}
 }
 
 func history(res http.ResponseWriter, req *http.Request) {
@@ -94,15 +106,18 @@ func history(res http.ResponseWriter, req *http.Request) {
 
 func handler(res http.ResponseWriter, req *http.Request) {
 	//id := req.PathValue("id")
-
 	id := chi.URLParam(req, "id")
 
+	html, err := template.ParseFiles("view.html")
+	check(err)
+	err = html.Execute(res, nil)
+	check(err)
 	if id == "favicon.ico" {
 		res.WriteHeader(http.StatusNoContent)
 		return
 	}
 
-	_, err := db.Exec(`
+	_, err = db.Exec(`
 			INSERT INTO user_ids (user_id)
 			VALUES ($1)
 			ON CONFLICT (user_id) DO NOTHING

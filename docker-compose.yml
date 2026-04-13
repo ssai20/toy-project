@@ -9,37 +9,37 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      DB_HOST: dpg-d7doo6m7r5hc73d56bf0-a.oregon-postgres.render.com
+      DB_HOST: postgres
       DB_PORT: 5432
       DB_USER: myuser
       DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: mydatabase_6zmk
+      DB_NAME: mydatabase
       DB_SSLMODE: disable
       APP_PORT: 8085
-#    networks:
-#      - app-network
-#  postgres:
-#    image: postgres:15-alpine
-#    container_name: my_postgres_db
-#    environment:
-#      POSTGRES_USER: myuser
-#      POSTGRES_PASSWORD: mypassword
-#      POSTGRES_DB: mydatabase
-#    volumes:
-#      - postgres_data:/var/lib/postgresql/data
-#    ports:
-#      - "5432:5432"
-#    networks:
-#      - app-network
-#    healthcheck:
-#      test: ["CMD-SHELL", "pg_isready -U myuser -d mydatabase"]
-#      interval: 5s
-#      timeout: 5s
-#      retries: 5
-#
-#volumes:
-#  postgres_data:
-#
-#networks:
-#  app-network:
-#    driver: bridge
+    networks:
+      - app-network
+  postgres:
+    image: postgres:15-alpine
+    container_name: my_postgres_db
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: mydatabase
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U myuser -d mydatabase"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+
+networks:
+  app-network:
+    driver: bridge
