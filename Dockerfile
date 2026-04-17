@@ -8,6 +8,6 @@ FROM alpine:latest
 RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 COPY --from=builder /app/main .
-COPY --from=builder /app/*.html .
+COPY --from=builder /app/templates ./templates
 EXPOSE 8085
 CMD ["./main"]
