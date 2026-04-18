@@ -115,12 +115,16 @@ func (s *Server) setupRouters() {
 	s.router.Use(middleware.Recoverer)
 	s.router.Use(middleware.Timeout(60 * time.Second))
 
+	s.router.Handle("/templates/*", http.StripPrefix("/templates/", http.FileServer(http.Dir("./templates"))))
+
 	s.router.Route("/api/v1", func(r chi.Router) {
-		r.Use(s.basicAuthMiddleware)
+		//r.Use(s.basicAuthMiddleware)
 
 		r.Get("/user", s.handleUserPage)
 		r.Post("/user", s.handleCreateUser)
 		r.Get("/user/{id}/history", s.handleUserHistory)
+		r.Get("/uiks", s.uiksAddresses)
+		r.Get("/results", s.results)
 	})
 
 	s.router.Get("/", s.handleHome)
@@ -138,6 +142,32 @@ func (s *Server) basicAuthMiddleware(next http.Handler) http.Handler {
 		}
 		next.ServeHTTP(w, r)
 	})
+}
+
+func (s *Server) uiksAddresses(w http.ResponseWriter, r *http.Request) {
+	tmpl, err := template.ParseFiles("templates/uiks.html")
+	w.Header().Set("Content-Type", "text/html;charset=utf-8")
+	if err := tmpl.Execute(w, nil); err != nil {
+		s.logger.Error("Failed to execute uiks", "error", err)
+	}
+	if err != nil {
+		s.logger.Error("Failed to parse template", "error", err)
+		http.Error(w, "Internal Server UIK error", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (s *Server) results(w http.ResponseWriter, r *http.Request) {
+	tmpl, err := template.ParseFiles("templates/result.html")
+	w.Header().Set("Content-Type", "text/html;charset=utf-8")
+	if err := tmpl.Execute(w, nil); err != nil {
+		s.logger.Error("Failed to execute results", "error", err)
+	}
+	if err != nil {
+		s.logger.Error("Failrd to parse template", "error", err)
+		http.Error(w, "Internal Server Results error", http.StatusInternalServerError)
+		return
+	}
 }
 
 func (s *Server) handleHome(w http.ResponseWriter, r *http.Request) {
