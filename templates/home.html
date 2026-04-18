@@ -1,15 +1,53 @@
 <html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            background-image: url('333.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+            margin: 0;
+            padding: 30px;
+        }
+
+        /* Затемняем фон для читаемости текста */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 0;
+        }
+
+        /* Контент поверх затемнения */
+        body > * {
+            position: relative;
+            z-index: 1;
+            color: white;
+        }
+
+        a {
+            color: #ffcc00;
+            font-size: 12px;
+        }
+
+        h1 {
+            color: white;
+        }
+    </style>
+</head>
 <body>
-<h1>Добро пожаловать!</h1>
-<!--<a href="/api/v1/user">Перейти к защищенной части</a>-->
-<p>
-<a href="/api/v1/uiks">📋Адреса УИКов</a>
-</p>
-<p>
-<a href="/api/v1/results">📊 Результаты 2021 года</a>
-</p>
-<p>
-<a href="https://yandex.ru/maps/66/omsk/?indoorLevel=1&ll=73.386170%2C54.998662&mode=usermaps&source=constructorLink&um=constructor%3Ad2338b34a1810893870c0ab0beb504ea48c2c9ed9a31e05e9f18ca98c4c5dec1&z=13.53">🗺️Карта округа</a>
-</p>
+
+<!--<h1>Добро пожаловать!</h1>-->
+
+<p><a href="/api/v1/uiks">📋 Адреса УИКов</a></p>
+<p><a href="/api/v1/results">📊 Результаты 2021 года</a></p>
+<p><a href="https://yandex.ru/maps/66/omsk/?indoorLevel=1&ll=73.386170%2C54.998662&mode=usermaps&source=constructorLink&um=constructor%3Ad2338b34a1810893870c0ab0beb504ea48c2c9ed9a31e05e9f18ca98c4c5dec1&z=13.53">🗺️ Карта округа</a></p>
+
 </body>
 </html>
