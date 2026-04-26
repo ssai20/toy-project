@@ -30,7 +30,7 @@ func loadConfig() *Config {
 		KafkaBroker: getEnv("KAFKA_BROKER", "kafka-23ff71ac-ssairan20-5f0c.i.aivencloud.com:16742"),
 		KafkaCert:   getEnv("KAFKA_CERT", "/tmp/access-cert.pem"),
 		KafkaKey:    getEnv("KAFKA_KEY", "/tmp/access-key.pem"),
-		KafkaCA:     getEnv("KAFKA_CA", "/tmp/ca_cert.pem"),
+		KafkaCA:     getEnv("KAFKA_CA", "/tmp/ca-cert.pem"),
 	}
 }
 
