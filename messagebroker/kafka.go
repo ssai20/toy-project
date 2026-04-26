@@ -106,19 +106,14 @@ func (c *Consumer) saveToDatabase(credentials map[string]string) error {
 	return tx.Commit()
 }
 
-func CreateKafkaConsumer(db *sql.DB, brokers, certFile, keyFile, caFile, groupID, topic string) {
-	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+func CreateKafkaConsumer(db *sql.DB, brokers, certContent, keyContent, caContent, groupID, topic string) {
+	cert, err := tls.X509KeyPair([]byte(certContent), []byte(keyContent))
 	if err != nil {
 		log.Fatalf("Ошибка загрузки сертичикатов: %v", err)
 	}
 
-	caCert, err := os.ReadFile(caFile)
-	if err != nil {
-		log.Fatalf("Ошибка чтения СА сертификата: %v", err)
-	}
-
 	caCertPool := x509.NewCertPool()
-	if !caCertPool.AppendCertsFromPEM(caCert) {
+	if !caCertPool.AppendCertsFromPEM([]byte(caContent)) {
 		log.Fatalf("Ошибка доавления СА сертифиаката")
 	}
 
