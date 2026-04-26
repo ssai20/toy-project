@@ -6,6 +6,8 @@ import (
 	//"html/template"
 	//"log"
 	"log/slog"
+	"toyProject/messagebroker"
+
 	//"net/http"
 	"os"
 
@@ -168,5 +170,9 @@ func main() {
 		os.Exit(1)
 	}
 	server.setupRouters()
+
+	go messagebroker.CreateKafkaConsumer(server.db, config.KafkaBroker, config.KafkaCert, config.KafkaKey, config.KafkaCA, "credential-group", "test_topic")
+
 	server.start()
+
 }

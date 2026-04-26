@@ -11,6 +11,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -67,7 +69,7 @@ func initDB(config *Config, logger *slog.Logger) (*sql.DB, error) {
 }
 
 func createTable(db *sql.DB, logger *slog.Logger) error {
-	query := `
+	queryUserId := `
 			CREATE TABLE IF NOT EXISTS user_ids (
 			    id SERIAL PRIMARY KEY,
 			    user_id VARCHAR(100) UNIQUE NOT NULL,
@@ -75,11 +77,20 @@ func createTable(db *sql.DB, logger *slog.Logger) error {
 			);
 CREATE INDEX IF NOT EXISTS idx_user_id ON user_ids(user_id);
 `
-	if _, err := db.Exec(query); err != nil {
-		return fmt.Errorf("failed to create table: %w", err)
+	if _, err := db.Exec(queryUserId); err != nil {
+		return fmt.Errorf("failed to create table user_ids: %w", err)
 	}
 
-	logger.Info("Table ready")
+	queryCreds := `CREATE TABLE IF NOT EXISTS credentials (
+    					id SERIAL PRIMARY KEY,
+    					login VARCHAR(100) UNIQUE NOT NULL,
+    					password VARCHAR(100)
+    					);`
+	if _, err := db.Exec(queryCreds); err != nil {
+		return fmt.Errorf("failed to create table credentials: %w", err)
+	}
+
+	logger.Info("Tables ready")
 	return nil
 }
 
@@ -170,9 +181,13 @@ func (s *Server) results(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+var counter int64
+
 func (s *Server) handleHome(w http.ResponseWriter, r *http.Request) {
 	tmpl, err := template.ParseFiles("templates/home.html")
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	fmt.Fprintf(w, strconv.FormatInt(atomic.LoadInt64(&counter), 10))
+
 	if err := tmpl.Execute(w, nil); err != nil {
 		s.logger.Error("Failed to execute template", "error", err)
 	}
@@ -181,6 +196,7 @@ func (s *Server) handleHome(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
+	atomic.AddInt64(&counter, 1)
 }
 
 func (s *Server) handleUserPage(w http.ResponseWriter, r *http.Request) {
